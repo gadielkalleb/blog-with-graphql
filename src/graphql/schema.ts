@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from 'graphql-tools';
 
-const users: any[] = [
+const users: object[] = [
   {
     id: 1,
     name: 'Jon',
@@ -30,6 +30,11 @@ const typeDefs = `
 `;
 
 const resolvers = {
+  User: {
+    id: (user: { id: number; }) => (user.id),
+    name: (user: { name: string; }) => (user.name),
+    email: (user: { email: string; }) => (user.email),
+  },
   Query: {
     allUsers: () => users
   },
