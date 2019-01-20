@@ -5,6 +5,7 @@ const userTypes = `
     name: String!
     email: String!
     photo: String
+    post: (first: Int, offset: Int): [ Post! ]!
     createdAt: String!
     updateAt: String!
   }
