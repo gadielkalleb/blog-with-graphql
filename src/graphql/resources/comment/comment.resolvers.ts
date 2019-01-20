@@ -8,12 +8,15 @@ import { handleError } from "../../../utils/utils";
 export const commentResolvers = {
 
   Comment: {
+
     user: (comment, args, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
       return db.User.findById(comment.get('user')).catch(handleError);
     },
+
     post: (comment, args, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
       return db.Post.findById(comment.get('post')).catch(handleError);
     },
+    
   },
 
   Query: {
@@ -27,6 +30,7 @@ export const commentResolvers = {
   },
 
   Mutation: {
+
     createComment: (parent, { input }, {db}: {db: DbConnection}, info: GraphQLResolveInfo) => {
       return db.sequelize.transaction((t: Transaction) => {
         return db.Comment.create(input, { transaction: t })
@@ -54,5 +58,7 @@ export const commentResolvers = {
           })
       }).catch(handleError);
     },
+
   }
+
 }

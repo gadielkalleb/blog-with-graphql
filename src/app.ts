@@ -13,11 +13,11 @@ class App{
   }
 
   private middleware(): void {
-    this.express.get('/', (req, res) => res.redirect('/graphql'));
+    // this.express.get('/', (req, res) => res.redirect('/graphql'));
     this.express.use('/graphql', 
       (req, res, next) => {
         req['context'] = {}
-        req['context'].db = db;
+        req['context']['db'] = db;
         next();
       },
       graphqlHTTP((req) => ({ 
