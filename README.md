@@ -5,6 +5,10 @@ Aplicação de teste usando graphQl
 
 É preciso que tenha o mysql instalado na maquina que for rodar o projeto
 
+Tem um arquivo de config dentro do projeto *./src/config/config.json*, necessario parras sua senha e usuario do mysql na chave de development.
+
+é preciso criar uma tabela chamada *graphql_blog_development* 
+
 Estou usando Sequelize como orm.
 
 Dentro do terminal na raiz do projeto vai ser preciso rodar alguns comandos.
