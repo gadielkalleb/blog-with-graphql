@@ -5,7 +5,7 @@ const postTypes = `
     content: String!
     photo: String
     createdAt: String!
-    updateAt: String!
+    updatedAt: String!
     author: User!
     comments(firts: Int, offset: Int): [ Comment! ]!
   }
