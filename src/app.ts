@@ -3,6 +3,7 @@ import * as graphqlHTTP from 'express-graphql';
 import schema from './graphql/schema';
 
 import db from './models'
+import { extractJwtMiddleware } from './middlewares/extract-jwt-middleware';
 
 class App{
   public express: express.Application;
@@ -14,18 +15,22 @@ class App{
 
   private middleware(): void {
     // this.express.get('/', (req, res) => res.redirect('/graphql'));
-    this.express.use('/graphql', 
+    this.express.use('/graphql',
+
+      extractJwtMiddleware(),
+
       (req, res, next) => {
-        req['context'] = {}
         req['context']['db'] = db;
         next();
       },
-      graphqlHTTP((req) => ({ 
-        schema, 
-        graphiql: process.env.NODE_ENV === 'development',
-        context: req['context'],
-      }))
-    
+
+      graphqlHTTP((req) => (
+        { 
+          schema, 
+          graphiql: process.env.NODE_ENV === 'development',
+          context: req['context'],
+        }
+      ))
     );
   }
 }
