@@ -46,11 +46,17 @@ export const userResolvers = {
       id = parseInt(id);
       return db.User.findById(id)
         .then((user: UserInstance) => {
-          if (!user) throw new Error(`User with id ${id} not found!`)
+          throwError(!user, `User with id ${id} not found!`);
           return user;
         }).catch(handleError)
     },
 
+    currentUser: compose(...authResolvers)
+      ((parent, args, { db, authUser }: { db: DbConnection, authUser: AuthUser }, info: GraphQLResolveInfo) => {
+        return findByIdUser(db, authUser)
+          .then((user: UserInstance) => user)
+          .catch(handleError)
+      }),
   },
 
   Mutation: {
@@ -62,16 +68,10 @@ export const userResolvers = {
     },
 
     updateUser: compose(...authResolvers) 
-      ((
-        parent, 
-        { input }, 
-        { db, authUser }: { db: DbConnection, authUser: AuthUser }, 
-        info: GraphQLResolveInfo) => {
-        
+      ((parent, { input }, { db, authUser }: { db: DbConnection, authUser: AuthUser }, info: GraphQLResolveInfo) => {
         return db.sequelize.transaction((t: Transaction) => 
           findByIdUser(db, authUser)
             .then((user: UserInstance) => user.update(input, { transaction: t }))
-            
         //   return db.User
         //     .findById(authUser.id)
         //     .then((user: UserInstance) => {
