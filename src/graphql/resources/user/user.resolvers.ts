@@ -8,6 +8,17 @@ import { compose } from "../../composable/composable.resolver";
 import { authResolvers } from "../../composable/auth.resolve";
 import { AuthUser } from "../../../interfaces/AuthUserInterface";
 
+const findByIdUser = (db, authUser) => {
+  return new Promise((resolve) => {
+    return db.User
+      .findById(authUser.id)
+      .then((user: UserInstance) => {
+        throwError(!user, `User with id ${authUser.id} not found!`);
+        resolve(user)
+      })
+  })
+}
+
 export const userResolvers = {
 
   User: {
@@ -56,15 +67,18 @@ export const userResolvers = {
         { input }, 
         { db, authUser }: { db: DbConnection, authUser: AuthUser }, 
         info: GraphQLResolveInfo) => {
-
-        return db.sequelize.transaction((t: Transaction) => {
-          return db.User
-            .findById(authUser.id)
-            .then((user: UserInstance) => {
-              throwError(!user, `User with id ${authUser.id} not found!`);
-              return user.update(input, { transaction: t });
-            })
-        }).catch(handleError)
+        
+        return db.sequelize.transaction((t: Transaction) => 
+          findByIdUser(db, authUser)
+            .then((user: UserInstance) => user.update(input, { transaction: t }))
+            
+        //   return db.User
+        //     .findById(authUser.id)
+        //     .then((user: UserInstance) => {
+        //       throwError(!user, `User with id ${authUser.id} not found!`);
+        //       return user.update(input, { transaction: t });
+        //     })
+        ).catch(handleError)
     }),
 
     updateUserPassword: compose(...authResolvers)
@@ -83,7 +97,7 @@ export const userResolvers = {
       }),
 
     deleteUser: compose(...authResolvers)
-    
+
       ((parent, args, { db, authUser }: { db: DbConnection, authUser: AuthUser }, info: GraphQLResolveInfo) => {
 
         return db.sequelize.transaction((t: Transaction) => {
