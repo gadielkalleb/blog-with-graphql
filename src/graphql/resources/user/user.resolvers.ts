@@ -72,12 +72,6 @@ export const userResolvers = {
         return db.sequelize.transaction((t: Transaction) => 
           findByIdUser(db, authUser)
             .then((user: UserInstance) => user.update(input, { transaction: t }))
-        //   return db.User
-        //     .findById(authUser.id)
-        //     .then((user: UserInstance) => {
-        //       throwError(!user, `User with id ${authUser.id} not found!`);
-        //       return user.update(input, { transaction: t });
-        //     })
         ).catch(handleError)
     }),
 
