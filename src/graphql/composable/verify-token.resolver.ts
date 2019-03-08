@@ -17,8 +17,8 @@ export const verifyTokenResolver: ComposableResolver<any, ResolverContext> =
         throw new Error('Unauthorized! Token not provided');
       } 
       else {
-        jwt.verify(token, JWT_SECRET, (err, decoded: any) => {
-          
+        return jwt.verify(token, JWT_SECRET, (err, decoded: any) => {
+
           if (err) {
             throw new Error(`${err.name}: ${err.message}`);
           }

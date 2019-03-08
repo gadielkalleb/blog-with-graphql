@@ -3,10 +3,10 @@ import { GraphQLResolveInfo } from "graphql";
 
 import { DbConnection } from "../../../interfaces/DbConnectionInterface";
 import { UserInstance } from "../../../models/UserModels";
-import { handleError } from "../../../utils/utils";
+import { handleError, throwError } from "../../../utils/utils";
 import { compose } from "../../composable/composable.resolver";
-import { authResolver } from "../../composable/auth.resolve";
-import { verifyTokenResolver } from "../../composable/verify-token.resolver";
+import { authResolvers } from "../../composable/auth.resolve";
+import { AuthUser } from "../../../interfaces/AuthUserInterface";
 
 export const userResolvers = {
 
@@ -24,9 +24,12 @@ export const userResolvers = {
 
   Query: {
 
-    users: compose(authResolver, verifyTokenResolver)((parent, { first = 10, offset = 0 }, { db }: { db: DbConnection }, info: GraphQLResolveInfo) => {
-      return db.User.findAll({ limit: first, offset: offset }).catch(handleError);
-    }),
+    users: (parent, { first = 10, offset = 0 }, { db }: { db: DbConnection }, info: GraphQLResolveInfo) => {
+        return db.User.findAll({ 
+          limit: first, 
+          offset: offset 
+        }).catch(handleError);
+    },
 
     user: (parent, { id }, { db }: { db: DbConnection }, info: GraphQLResolveInfo) => {
       id = parseInt(id);
@@ -47,43 +50,53 @@ export const userResolvers = {
       }).catch(handleError)
     },
 
-    updateUser: (parent, { id, input }, { db }: { db: DbConnection }, info: GraphQLResolveInfo) => {
-      id = parseInt(id);
-      return db.sequelize.transaction((t: Transaction) => {
-        return db.User
-          .findById(id)
-          .then((user: UserInstance) => {
-            if (!user) throw new Error(`User with id ${id} not found!`);
-            return user.update(input, { transaction: t });
-          })
-      }).catch(handleError)
-    },
+    updateUser: compose(...authResolvers) 
+      ((
+        parent, 
+        { input }, 
+        { db, authUser }: { db: DbConnection, authUser: AuthUser }, 
+        info: GraphQLResolveInfo) => {
 
-    updateUserPassword: (parent, { id, input }, { db }: { db: DbConnection }, info: GraphQLResolveInfo) => {
-      id = parseInt(id);
-      return db.sequelize.transaction((t: Transaction) => {
-        return db.User
-          .findById(id)
-          .then((user: UserInstance) => {
-            if (!user) throw new Error(`User with id ${id} not found!`);
-            return user.update(input, { transaction: t })
-              .then((user: UserInstance) => !!user)
-          })
-      }).catch(handleError)
-    },
+        return db.sequelize.transaction((t: Transaction) => {
+          return db.User
+            .findById(authUser.id)
+            .then((user: UserInstance) => {
+              throwError(!user, `User with id ${authUser.id} not found!`);
+              return user.update(input, { transaction: t });
+            })
+        }).catch(handleError)
+    }),
 
-    deleteUser: (parent, { id }, { db }: { db: DbConnection }, info: GraphQLResolveInfo) => {
-      id = parseInt(id);
-      return db.sequelize.transaction((t: Transaction) => {
-        return db.User
-          .findById(id)
-          .then((user: UserInstance) => {
-            if (!user) throw new Error(`User with id ${id} not found!`);
-            return user.destroy({ transaction: t })
-              .then(user => !!user);
-          })
-      }).catch(handleError)
-    },
+    updateUserPassword: compose(...authResolvers)
+
+      ((parent, { input }, { db, authUser }: { db: DbConnection, authUser: AuthUser }, info: GraphQLResolveInfo) => {
+
+        return db.sequelize.transaction((t: Transaction) => {
+          return db.User
+            .findById(authUser.id)
+            .then((user: UserInstance) => {
+              throwError(!user, `User with id ${authUser.id} not found!`);
+              return user.update(input, { transaction: t })
+                .then((user: UserInstance) => !!user)
+            })
+        }).catch(handleError)
+      }),
+
+    deleteUser: compose(...authResolvers)
+    
+      ((parent, args, { db, authUser }: { db: DbConnection, authUser: AuthUser }, info: GraphQLResolveInfo) => {
+
+        return db.sequelize.transaction((t: Transaction) => {
+          return db.User
+            .findById(authUser.id)
+            .then((user: UserInstance) => {
+              throwError(!user, `User with id ${authUser.id} not found!`);
+              return user.destroy({ transaction: t })
+                .then(user => !!user)
+            })
+        }).catch(handleError)
+      }),
 
   }
+
 }
