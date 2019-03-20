@@ -1,13 +1,15 @@
+import { Transaction } from "sequelize";
 import { GraphQLResolveInfo } from "graphql";
 
-import { DbConnection } from "../../../interfaces/DbConnectionInterface";
-import { PostInstances } from "../../../models/PostModel";
-import { Transaction } from "sequelize";
-import { handleError, throwError } from "../../../utils/utils";
-import { compose } from "../../composable/composable.resolver";
-import { authResolvers } from "../../composable/auth.resolve";
 import { AuthUser } from "../../../interfaces/AuthUserInterface";
+import { DbConnection } from "../../../interfaces/DbConnectionInterface";
 
+import { PostInstances } from "../../../models/PostModel";
+
+import { authResolvers } from "../../composable/auth.resolve";
+import { compose } from "../../composable/composable.resolver";
+
+import { handleError, throwError } from "../../../utils/utils";
 
 export const postResolvers = {
 
